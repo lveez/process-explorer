@@ -145,6 +145,7 @@ bool Process::Close() {
 
 bool Process::HandleError() {
     win_error_ = GetLastError();
+    std::cerr << std::format("ERROR: WINERROR {}\n", win_error_);
     return false;
 }
 

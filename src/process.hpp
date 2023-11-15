@@ -184,6 +184,9 @@ class Process {
         return true;
     }
 
+    /* injection */
+    bool InjectDll(const std::string& dll_path);
+
     /* getters */
     const std::string&
     GetWindowName() const {

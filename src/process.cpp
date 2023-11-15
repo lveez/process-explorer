@@ -183,4 +183,28 @@ bool Process::WindowNameFromProcessID() {
     return true;
 }
 
+bool Process::InjectDll(const std::string& dll_path) {
+    LPTHREAD_START_ROUTINE LoadLibrary = reinterpret_cast<LPTHREAD_START_ROUTINE>(GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA"));
+    if (LoadLibrary == nullptr)
+        return this->HandleError();
+
+    LPVOID dll_string_dest = VirtualAllocEx(process_handle_, nullptr, dll_path.length() + 1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    if (dll_string_dest == nullptr)
+        return this->HandleError();
+
+    if (!Write<uint8_t>(reinterpret_cast<DWORD>(dll_string_dest), std::vector<uint8_t>(dll_path.begin(), dll_path.end())))
+        return false;
+
+    HANDLE thread_handle = CreateRemoteThread(process_handle_, nullptr, 0, LoadLibrary, dll_string_dest, 0, nullptr);
+
+    VirtualFreeEx(process_handle_, dll_string_dest, dll_path.length() + 1, MEM_RELEASE | MEM_DECOMMIT);
+
+    if (thread_handle == nullptr)
+        return this->HandleError();
+
+    std::cout << std::format("{} injected into {}.\n", dll_path.substr(dll_path.find_last_of("\\/") + 1), process_name_);
+
+    return true;
+}
+
 };  // namespace pe

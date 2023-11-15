@@ -39,7 +39,7 @@ class Process {
 
     /* num_to_read is number of T to read, not bytes */
     template <typename T>
-    std::vector<T> ReadProtected(DWORD src_address, size_t num_to_read) {
+    std::vector<T> ProtectedRead(DWORD src_address, size_t num_to_read) {
         std::vector<T> buf(num_to_read);
         void* src = reinterpret_cast<void*>(src_address);
 
@@ -54,6 +54,22 @@ class Process {
 
         VirtualProtectEx(process_handle_, src, sizeof(T) * buf.capacity(), old_protect, nullptr);
         return buf;
+    }
+
+    template <typename T>
+    bool ProtectedRead(DWORD src_address, T* dest, size_t num_to_read) {
+        void* src = reinterpret_cast<void*>(src_address);
+
+        DWORD old_protect;
+        VirtualProtectEx(process_handle_, src, num_to_read * sizeof(T), PAGE_EXECUTE_READWRITE, &old_protect);
+
+        if (!ReadProcessMemory(process_handle_, src, dest, num_to_read * sizeof(T), nullptr)) {
+            VirtualProtectEx(process_handle_, src, num_to_read * sizeof(T), old_protect, nullptr);
+            return this->HandleError();
+        }
+
+        VirtualProtectEx(process_handle_, src, num_to_read * sizeof(T), old_protect, nullptr);
+        return true;
     }
 
     template <typename T>
@@ -82,26 +98,89 @@ class Process {
     }
 
     template <typename T>
+    bool Read(DWORD src_address, T* dest, size_t num_to_read) {
+        void* src = reinterpret_cast<void*>(src_address);
+
+        if (!ReadProcessMemory(process_handle_, src, dest, num_to_read * sizeof(T), nullptr))
+            return this->HandleError();
+
+        return true;
+    }
+
+    template <typename T>
     bool Write(DWORD dest_address, const T& value) {
         void* dest = reinterpret_cast<void*>(dest_address);
+
         if (!WriteProcessMemory(process_handle_, dest, &value, sizeof(T), nullptr))
             return this->HandleError();
+
+        return true;
+    }
+
+    template <typename T>
+    bool ProtectedWrite(DWORD dest_address, const T& value) {
+        void* dest = reinterpret_cast<void*>(dest_address);
+
+        DWORD old_protect;
+        VirtualProtectEx(process_handle_, dest, sizeof(T), PAGE_EXECUTE_READWRITE, &old_protect);
+
+        if (!WriteProcessMemory(process_handle_, dest, &value, sizeof(T), nullptr)) {
+            VirtualProtectEx(process_handle_, dest, sizeof(T), old_protect, nullptr);
+            return this->HandleError();
+        }
+        VirtualProtectEx(process_handle_, dest, sizeof(T), old_protect, nullptr);
         return true;
     }
 
     template <typename T>
     bool Write(DWORD dest_address, const std::vector<T>& data) {
         void* dest = reinterpret_cast<void*>(dest_address);
+
         if (!WriteProcessMemory(process_handle_, dest, data.data(), sizeof(T) * data.size(), nullptr))
             return this->HandleError();
+
+        return true;
+    }
+
+    template <typename T>
+    bool ProtectedWrite(DWORD dest_address, const std::vector<T>& data) {
+        void* dest = reinterpret_cast<void*>(dest_address);
+
+        DWORD old_protect;
+        VirtualProtectEx(process_handle_, dest, data.size() * sizeof(T), PAGE_EXECUTE_READWRITE, &old_protect);
+
+        if (!WriteProcessMemory(process_handle_, dest, data.data(), sizeof(T) * data.size(), nullptr)) {
+            VirtualProtectEx(process_handle_, dest, data.size() * sizeof(T), old_protect, nullptr);
+            return this->HandleError();
+        }
+
+        VirtualProtectEx(process_handle_, dest, data.size() * sizeof(T), old_protect, nullptr);
         return true;
     }
 
     template <typename T>
     bool Write(DWORD dest_address, T* data, size_t num_to_write) {
         void* dest = reinterpret_cast<void*>(dest_address);
+
         if (!WriteProcessMemory(process_handle_, dest, data, sizeof(T) * num_to_write, nullptr))
             return this->HandleError();
+
+        return true;
+    }
+
+    template <typename T>
+    bool ProtectedWrite(DWORD dest_address, T* data, size_t num_to_write) {
+        void* dest = reinterpret_cast<void*>(dest_address);
+
+        DWORD old_protect;
+        VirtualProtectEx(process_handle_, dest, num_to_write * sizeof(T), PAGE_EXECUTE_READWRITE, &old_protect);
+
+        if (!WriteProcessMemory(process_handle_, dest, data, sizeof(T) * num_to_write, nullptr)) {
+            VirtualProtectEx(process_handle_, dest, num_to_write * sizeof(T), old_protect, nullptr);
+            return this->HandleError();
+        }
+
+        VirtualProtectEx(process_handle_, dest, num_to_write * sizeof(T), old_protect, nullptr);
         return true;
     }
 

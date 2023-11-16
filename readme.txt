@@ -9,3 +9,11 @@ Process::
     - Write an array to memory.
     - Writes to protected memory.
     - Simple DLL using GetProcAddress and CreateRemoteThread.
+TODO:  
+    - Add some error info.
+
+Image::
+    - Add DLL imports to EXE files.
+TODO:
+    - Split data members into structs, crowding the class at the moment.
+    - Get data from loaded image.

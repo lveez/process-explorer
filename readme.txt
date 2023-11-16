@@ -12,7 +12,7 @@ Process::
 TODO:  
     - Add some error info.
 
-Image::
+Image:: (adapted from https://www.x86matthew.com/view_post?id=add_exe_import)
     - Add DLL imports to EXE files.
 TODO:
     - Split data members into structs, crowding the class at the moment.

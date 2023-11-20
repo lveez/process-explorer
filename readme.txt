@@ -17,3 +17,8 @@ Image:: (adapted from https://www.x86matthew.com/view_post?id=add_exe_import)
 TODO:
     - Split data members into structs, crowding the class at the moment.
     - Get data from loaded image.
+
+
+
+https://what-when-how.com/windows-forensic-analysis/executable-file-analysis-windows-forensic-analysis-part-2/
+https://learn.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)?redirectedfrom=MSDN
